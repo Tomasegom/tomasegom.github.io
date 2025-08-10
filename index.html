@@ -5,18 +5,52 @@
 <title>Mi Primer WebAR con MindAR</title>
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+<script>
+// Componente para suavizar posición y rotación
+AFRAME.registerComponent('smooth-tracking', {
+  schema: { factor: {type: 'number', default: 0.15} }, // 0 = muy suave, 1 = sin suavizado
+  init: function () {
+    this.smoothedPosition = new THREE.Vector3();
+    this.smoothedQuaternion = new THREE.Quaternion();
+    this.initialized = false;
+  },
+  tick: function () {
+    const el = this.el;
+    const currentPos = el.object3D.position;
+    const currentQuat = el.object3D.quaternion;
+    const f = this.data.factor;
+
+    if (!this.initialized) {
+      this.smoothedPosition.copy(currentPos);
+      this.smoothedQuaternion.copy(currentQuat);
+      this.initialized = true;
+    } else {
+      // Suavizar posición
+      this.smoothedPosition.lerp(currentPos, f);
+      currentPos.copy(this.smoothedPosition);
+
+      // Suavizar rotación
+      THREE.Quaternion.slerp(this.smoothedQuaternion, currentQuat, this.smoothedQuaternion, f);
+      currentQuat.copy(this.smoothedQuaternion);
+    }
+  }
+});
+</script>
 </head>
 <body>
 <a-scene mindar-image="imageTargetSrc: targets.mind; autoStart: true" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: true">
-<a-assets>
-<a-asset-item id="CarModel" src="car.glb"></a-asset-item>
-</a-assets>
- 
-<a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
- 
-<a-entity mindar-image-target="targetIndex: 0">
-<a-gltf-model rotation="90 0 0" position="0 0 0" scale=".35 .35 .35" src="#CarModel"></a-gltf-model>
-</a-entity>
+
+  <a-assets>
+    <a-asset-item id="CarModel" src="car.glb"></a-asset-item>
+  </a-assets>
+  
+  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+  
+  <!-- Target -->
+  <a-entity mindar-image-target="targetIndex: 0">
+    <a-gltf-model rotation="90 0 0" position="0 0 0" scale=".35 .35 .35" src="#CarModel" smooth-tracking="factor: 0.15"></a-gltf-model>
+  </a-entity>
+
 </a-scene>
 </body>
 </html>
