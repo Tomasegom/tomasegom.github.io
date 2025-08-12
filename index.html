@@ -3,65 +3,62 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MindAR App</title>
-<!-- Incluimos A-Frame y MindAR A-Frame -->
+
+<!-- A-Frame y MindAR -->
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
-    <style>
-    /* AQUI VA EL CSS QUE TE ENSEÑARE MAS ADELANTE DE ESTE TUTORIAL*/
-    /* Definimos las variables CSS */
-    :root {
+<style>
+  /* Variables CSS */
+  :root {
     --primary-colorUI: #0066ff;
     --secondary-colorUI: #0080ff;
     --corner-size: 35px;
     --square-size: 60vmin;
     --scan-line-height: 3px;
     --border-thickness: 3px;
-    }
+  }
 
-    /* Ocultamos los elementos de UI predeterminados de MindAR para evitar duplicados */
-    .mindar-ui-overlay, .mindar-ui-target, .a-enter-vr-button {
+  /* Ocultar UI predeterminada de MindAR */
+  .mindar-ui-overlay, .mindar-ui-target, .a-enter-vr-button {
     display: none !important;
     visibility: hidden !important;
-    }
+  }
 
-    /* Contenedor principal de nuestra superposición de escaneo personalizada */
-    .ui-custom-tracking-overlay {
+  /* Overlay de escaneo */
+  .ui-custom-tracking-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none; /* Permite clics a través del overlay */
+    pointer-events: none;
     z-index: 9;
     background-color: rgba(0, 0, 0, 0.8);
     opacity: 1;
     transition: opacity 0.5s ease;
-    }
-
-    /* Clase para ocultar la superposición cuando el marcador es detectado */
-    .ui-custom-tracking-overlay.hidden {
+  }
+  .ui-custom-tracking-overlay.hidden {
     opacity: 0;
-    }
+  }
 
-    /* El cuadro de escaneo principal */
-    .ui-tracking-square {
+  /* Cuadro de escaneo */
+  .ui-tracking-square {
     position: absolute;
     width: var(--square-size);
     height: var(--square-size);
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    /* Usamos flexbox para centrar y ordenar el contenido interno */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    }
+  }
 
-    /* Estilo para las esquinas del cuadro de escaneo */
-    .ui-tracking-square::before,
-    .ui-tracking-square::after {
+  /* Esquinas */
+  .ui-tracking-square::before,
+  .ui-tracking-square::after {
     content: '';
     position: absolute;
     width: var(--corner-size);
@@ -69,29 +66,25 @@
     border: var(--border-thickness) solid var(--primary-colorUI);
     filter: drop-shadow(0 0 8px var(--primary-colorUI)) drop-shadow(0 0 16px rgba(0, 102, 255, 0.4)) drop-shadow(0 0 24px rgba(0, 102, 255, 0.2));
     animation: ui-corner-glow 3s infinite ease-in-out;
-    }
-
-    /* Esquina superior izquierda */
-    .ui-tracking-square::before {
+  }
+  .ui-tracking-square::before {
     top: -2px;
     left: -2px;
     border-right: none;
     border-bottom: none;
     border-top-left-radius: 8px;
-    }
-
-    /* Esquina inferior derecha */
-    .ui-tracking-square::after {
+  }
+  .ui-tracking-square::after {
     bottom: -2px;
     right: -2px;
     border-left: none;
     border-top: none;
     border-bottom-right-radius: 8px;
-    }
+  }
 
-    /* Contenedor adicional para las otras dos esquinas */
-    .ui-tracking-square span::before,
-    .ui-tracking-square span::after {
+  /* Otras esquinas */
+  .ui-tracking-square span::before,
+  .ui-tracking-square span::after {
     content: '';
     position: absolute;
     width: var(--corner-size);
@@ -99,133 +92,139 @@
     border: var(--border-thickness) solid var(--primary-colorUI);
     filter: drop-shadow(0 0 8px var(--primary-colorUI)) drop-shadow(0 0 16px rgba(0, 102, 255, 0.4)) drop-shadow(0 0 24px rgba(0, 102, 255, 0.2));
     animation: ui-corner-glow 3s infinite ease-in-out;
-    }
-
-    /* Esquina superior derecha */
-    .ui-tracking-square span::before {
+  }
+  .ui-tracking-square span::before {
     top: -2px;
     right: -2px;
     border-left: none;
     border-bottom: none;
     border-top-right-radius: 8px;
-    }
-
-    /* Esquina inferior izquierda */
-    .ui-tracking-square span::after {
+  }
+  .ui-tracking-square span::after {
     bottom: -2px;
     left: -2px;
     border-right: none;
     border-top: none;
     border-bottom-left-radius: 8px;
-    }
+  }
 
-    /* Estilo para la imagen dentro del recuadro de escaneo */
-    .scanning-image {
+  /* Imagen dentro del recuadro */
+  .scanning-image {
     width: 80%;
     height: 80%;
-    object-fit: contain; /* Asegura que la imagen se ajuste sin distorsionarse */
-    opacity: 0.7; /* Hacemos la imagen un poco transparente */
-    margin-bottom: 10px; /* Espacio entre la imagen y el texto */
-    }
+    object-fit: contain;
+    opacity: 0.7;
+    margin-bottom: 10px;
+  }
 
-    /* Estilo para el mensaje de escaneo */
-    .scanning-message {
+  /* Texto de escaneo */
+  .scanning-message {
     color: var(--primary-colorUI);
     font-size: clamp(1rem, 4vw, 1.5rem);
     font-family: sans-serif;
     text-shadow: 0 0 5px var(--primary-colorUI), 0 0 10px rgba(0, 102, 255, 0.6);
     text-align: center;
-    }
+  }
 
-    /* Estilo para la barra de escaneo - ahora una línea recta */
-    .ui-scan-line {
+  /* Línea de escaneo */
+  .ui-scan-line {
     position: absolute;
     left: 0;
     width: 100%;
     height: var(--scan-line-height);
-    background: var(--primary-colorUI); /* Línea recta */
+    background: var(--primary-colorUI);
     box-shadow: 0 0 5px var(--primary-colorUI), 0 0 10px rgba(0, 102, 255, 0.6);
     animation: ui-scan-animation 3s infinite ease-in-out;
     opacity: 0.8;
-    }
+  }
 
-    /* Animación del movimiento de la barra de escaneo */
-    @keyframes ui-scan-animation {
+  @keyframes ui-scan-animation {
     0%, 100% { top: 0; opacity: 0.7; }
     50% { top: 100%; opacity: 1; }
-    }
+  }
 
-    /* Animación para el brillo de las esquinas */
-    @keyframes ui-corner-glow {
+  /* Brillo de esquinas */
+  @keyframes ui-corner-glow {
     0% {
-    filter: drop-shadow(0 0 8px var(--primary-colorUI)) drop-shadow(0 0 16px rgba(0, 102, 255, 0.4));
-    border-color: var(--primary-colorUI);
+      filter: drop-shadow(0 0 8px var(--primary-colorUI)) drop-shadow(0 0 16px rgba(0, 102, 255, 0.4));
+      border-color: var(--primary-colorUI);
     }
     100% {
-    filter: drop-shadow(0 0 12px var(--primary-colorUI)) drop-shadow(0 0 24px rgba(0, 102, 255, 0.6)) drop-shadow(0 0 32px rgba(0, 102, 255, 0.2));
-    border-color: var(--secondary-colorUI);
+      filter: drop-shadow(0 0 12px var(--primary-colorUI)) drop-shadow(0 0 24px rgba(0, 102, 255, 0.6)) drop-shadow(0 0 32px rgba(0, 102, 255, 0.2));
+      border-color: var(--secondary-colorUI);
     }
-    }
-    </style>
+  }
 
+  /* Cámara en espejo */
+  .mindar-camera video {
+    transform: scaleX(-1);
+    transform-origin: center;
+  }
+</style>
 </head>
 <body>
 
+<!-- Overlay personalizado -->
 <div id="ui-custom-tracking-overlay" class="ui-custom-tracking-overlay">
-<div class="ui-tracking-square">
-
-<img src="target.png" alt="Marker Target" class="scanning-image">
-
-<div class="scanning-message">Porfavor, busca esta imagen</div>
-
-<div class="ui-scan-line"></div>
-
-<span></span>
-</div>
+  <div class="ui-tracking-square">
+    <img src="target.png" alt="Marker Target" class="scanning-image">
+    <div class="scanning-message">Porfavor, busca esta imagen</div>
+    <div class="ui-scan-line"></div>
+    <span></span>
+  </div>
 </div>
 
+<!-- Escena AR -->
 <a-scene
-mindar-image="imageTargetSrc: ./targets.mind; uiScanning: #ui-custom-tracking-overlay; filterMinCF:0.0001; filterBeta:500; warmupTolerance:2; missTolerance:5;"
-color-space="sRGB"
-renderer="colorManagement: true, physicallyCorrectLights: true"
-vr-mode-ui="enabled: false"
-device-orientation-permission-ui="enabled: false">
+  mindar-image="imageTargetSrc: ./targets.mind; uiScanning: #ui-custom-tracking-overlay; filterMinCF:0.0001; filterBeta:500; warmupTolerance:2; missTolerance:5;"
+  color-space="sRGB"
+  renderer="colorManagement: true, physicallyCorrectLights: true"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false">
 
-<a-assets>
-<a-asset-item id="carModel" src="./car.glb"></a-asset-item>
-</a-assets>
+  <a-assets>
+    <a-asset-item id="carModel" src="./car.glb"></a-asset-item>
+  </a-assets>
 
-<a-camera position="0 -2 0" look-controls="enabled: false"></a-camera>
+  <a-camera position="0 -2 0" look-controls="enabled: false"></a-camera>
 
-<a-entity mindar-image-target="targetIndex: 0">
-<a-gltf-model
-rotation="0 0 0"
-position="0 0 0"
-scale="0.25 0.25 0.25"
-gltf-model="#carModel">
-</a-gltf-model>
-</a-entity>
+  <a-entity mindar-image-target="targetIndex: 0">
+    <a-gltf-model
+      rotation="0 0 0"
+      position="0 0 0"
+      scale="0.25 0.25 0.25"
+      gltf-model="#carModel">
+    </a-gltf-model>
+  </a-entity>
 
 </a-scene>
-//AQUI VA EL JAVASCRIPT
+
+<!-- Script -->
 <script>
-    // Obtenemos el elemento de la superposición de escaneo por su ID
-    const scanningOverlay = document.getElementById('ui-custom-tracking-overlay');
+  const scanningOverlay = document.getElementById('ui-custom-tracking-overlay');
+  const sceneEl = document.querySelector('a-scene');
 
-    // Obtenemos la escena A-Frame
-    const sceneEl = document.querySelector('a-scene');
+  // Eventos de tracking
+  sceneEl.addEventListener('targetFound', () => scanningOverlay.classList.add('hidden'));
+  sceneEl.addEventListener('targetLost', () => scanningOverlay.classList.remove('hidden'));
 
-    // Escuchamos el evento 'targetFound' que MindAR emite cuando detecta un marcador
-    sceneEl.addEventListener('targetFound', function () {
-    // Cuando se encuentra el marcador, agregamos la clase 'hidden' para ocultarlo
-    scanningOverlay.classList.add('hidden');
-    });
+  document.querySelectorAll('[mindar-image-target]').forEach(target => {
+    target.addEventListener('targetFound', () => scanningOverlay.classList.add('hidden'));
+    target.addEventListener('targetLost', () => scanningOverlay.classList.remove('hidden'));
+  });
 
-    // Escuchamos el evento 'targetLost' que MindAR emite cuando se pierde el marcador
-    sceneEl.addEventListener('targetLost', function () {
-    // Cuando se pierde el marcador, quitamos la clase 'hidden' para volver a mostrarlo
-    scanningOverlay.classList.remove('hidden');
-    });
+  // Fallback: esperar a que aparezca el <video> y aplicar espejo
+  function flipCameraVideo() {
+    const v = document.querySelector('.mindar-camera video');
+    if (v) {
+      v.style.transform = 'scaleX(-1)';
+      v.style.transformOrigin = 'center';
+    } else {
+      setTimeout(flipCameraVideo, 150);
+    }
+  }
+  flipCameraVideo();
 </script>
+
 </body>
 </html>
