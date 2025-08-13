@@ -11,8 +11,8 @@
 <style>
   /* Variables CSS */
   :root {
-    --primary-colorUI: #0066ff;
-    --secondary-colorUI: #0080ff;
+    --primary-colorUI: #22838C;
+    --secondary-colorUI: #188c44;
     --corner-size: 35px;
     --square-size: 60vmin;
     --scan-line-height: 3px;
@@ -121,8 +121,8 @@
   .scanning-message {
     color: var(--primary-colorUI);
     font-size: clamp(1rem, 4vw, 1.5rem);
-    font-family: sans-serif;
-    text-shadow: 0 0 5px var(--primary-colorUI), 0 0 10px rgba(0, 102, 255, 0.6);
+    font-family: Georgia, serif;
+    text-shadow: 0 0 5px var(--primary-colorUI), 0 0 10px rgba(24, 127, 67, 0.6);
     text-align: center;
   }
 
@@ -155,7 +155,7 @@
     }
   }
 
-  /* Cámara en espejo */
+  /* Cámara en espejo --> To be Fixed  */  
   .mindar-camera video {
     transform: scaleX(-1);
     transform-origin: center;
@@ -186,7 +186,7 @@
     <a-asset-item id="carModel" src="./car.glb"></a-asset-item>
   </a-assets>
 
-  <a-camera position="0 -2 0" look-controls="enabled: false"></a-camera>
+  <a-camera position="0 0 -2" look-controls="enabled: false"></a-camera>
 
   <a-entity mindar-image-target="targetIndex: 0">
     <a-gltf-model
